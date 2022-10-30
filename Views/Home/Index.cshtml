@@ -1,8 +1,43 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+  ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@model List<CurrencyDataNBE>
+@*
+  <div class="text-center">
+  <h1 class="display-4">Welcome</h1>
+  <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+  </div> *@
+
+<div class="row justify-content-center">
+  <div class="col-8">
+
+    <table class="table table-dark table-striped">
+      <thead>
+        <tr>National</tr>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Currency Name</th>
+          <th scope="col">Buying</th>
+          <th scope="col">Selling</th>
+        </tr>
+      </thead>
+      <tbody>
+        @{var i=0;}
+        @foreach (var item in Model)
+        {
+          <tr>
+            <th scope="row">@i</th>
+            <td>@item.Name</td>
+            <td>@item.Buying</td>
+            <td>@item.Selling</td>
+          </tr>
+          i++;
+        }
+
+
+      </tbody>
+    </table>
+
+  </div>
 </div>

@@ -4,6 +4,8 @@ using ScrapingWeb.Models;
 using HtmlAgilityPack;
 using System.Net;
 using System.Text;
+using OfficeOpenXml;
+
 namespace ScrapingWeb.Controllers;
 
 public class HomeController : Controller
@@ -27,6 +29,7 @@ public class HomeController : Controller
     }
     public IActionResult Index()
     {
+        System.Console.WriteLine($"\n Start: {DateTime.Now} \n");
         // string url = "https://en.wikipedia.org/wiki/List_of_programmers";
         string url = "https://market.nbebank.com/market/banks/index.php";
         string response = CallUrl(url).Result;
@@ -39,12 +42,64 @@ public class HomeController : Controller
         // WriteToCsv(linkList);
 
        var curenciesFromNBE =  ParseHtmlCurrency(response);
+        System.Console.WriteLine($"\n End: {DateTime.Now} \n");
 
        PrintToConsole(curenciesFromNBE);
+      
+       using(var package = new ExcelPackage(@"c:\temp\myWorkbook.xlsx"))
+        {
+            var sheet = package.Workbook.Worksheets.Add("My Sheet");
+            sheet.Cells["A1"].Value = "Currency Name";
+            sheet.Cells["B1"].Value = "Buying";
+            sheet.Cells["C1"].Value = "Selling";
+            sheet.Cells["D1"].Value = "Transaction Buying";
+            sheet.Cells["E1"].Value = "Transaction Selling";
+            string Name, Buying, Selling, TransactionBuying, TransactionSelling;
+            int j=2;
+            for (int i = 0; i < curenciesFromNBE.Count; i++)
+            {
+                Name = "A"+ j;
+                Buying = "B"+ j;
+                Selling = "C"+ j;
+                TransactionBuying =  "D"+ j;
+                TransactionSelling =  "E"+ j;
+                j++;
+                sheet.Cells[Name].Value =  curenciesFromNBE[i].Name;
+                sheet.Cells[Buying].Value = Double.Parse( curenciesFromNBE[i].Buying );
+                sheet.Cells[Selling].Value = Double.Parse( curenciesFromNBE[i].Selling);
+                sheet.Cells[TransactionBuying].Value =  1;
+                sheet.Cells[TransactionSelling].Value = 1;
+            }
+                                                               
+            // Save to file
+            package.Save();
+        }                                           
 
-        return View();
+        return View(curenciesFromNBE);
     }
+    // public static void ConvertToCsv(this ExcelPackage package, string targetFile)
+    // {
+    //         var worksheet = package.Workbook.Worksheets[1];
 
+    //         var maxColumnNumber = worksheet.Dimension.End.Column;
+    //         var currentRow = new List<string>(maxColumnNumber);
+    //         var totalRowCount = worksheet.Dimension.End.Row;
+    //         var currentRowNum = 1;
+
+    //         //No need for a memory buffer, writing directly to a file
+    //         //var memory = new MemoryStream();
+
+    //         using (var writer = new StreamWriter(targetFile, false, Encoding.UTF8))
+    //         {
+    //                 csv.Workbook.Worksheets.Add(nameFile.ToString());
+    //         var worksheetCSV = csv.Workbook.Worksheets[1];
+
+    //         worksheetCSV.Cells.LoadFromCollection(xlsx.ConvertToCsv());                                                 
+    //         }
+
+    //         // No buffer returned
+    //         //return memory.ToArray();
+    // }                                                                                                                                                       
     private static async Task<string> CallUrl(string fullUrl)
     {
         HttpClient client = new HttpClient();
@@ -93,7 +148,7 @@ public class HomeController : Controller
         for (int i = 0; i < programmerLinks.Count; i++)
         {
              var currency = new CurrencyDataNBE();
-            if (i < 4)
+            if (i < 3)
             {
                 continue;
             }
@@ -164,13 +219,4 @@ public class HomeController : Controller
     
 
 
-}
-
-
-public class CurrencyDataNBE
-{
-    public string Name { get; set; }
-    public string Buying { get; set; }
-
-    public string Selling { get; set; }
 }
